@@ -1,12 +1,15 @@
 package apiserver
 
 type APIserver struct {
+	config *Config
 }
 
-func Init() *APIserver {
-	return &APIserver{}
+func Init(config *Config) *APIserver {
+	return &APIserver{
+		config: config,
+	}
 }
 
-func Start() error {
+func (server *APIserver) Start() error {
 	return nil
 }

@@ -1,1 +1,4 @@
 /.vscode/*
+apiserver
+!/internal/app/apiserver
+go.sum
