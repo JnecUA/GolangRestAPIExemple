@@ -2,13 +2,15 @@ package apiserver
 
 //Config type for server settings
 type Config struct {
-	ip   string `toml:ip_addr`
-	port int    `toml:port`
+	Ip       string `toml:"ip_addr"`
+	Port     int    `toml:"port"`
+	LogLevel string `toml:"log_level"`
 }
 
 func DefaultConfig() *Config {
 	return &Config{
-		ip:   "127.0.0.1",
-		port: 8080,
+		Ip:       "127.0.0.1",
+		Port:     8080,
+		LogLevel: "debug",
 	}
 }
