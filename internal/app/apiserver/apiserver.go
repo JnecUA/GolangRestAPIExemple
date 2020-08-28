@@ -1,10 +1,10 @@
 package apiserver
 
 import (
-	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -15,6 +15,10 @@ type APIserver struct {
 	config *Config
 	logger *logrus.Logger
 	router *mux.Router
+}
+
+type PageOptions struct {
+	Title string
 }
 
 //Init ... Initialize default server
@@ -63,8 +67,9 @@ func (s *APIserver) configureRouter() {
 }
 
 func (s *APIserver) handleHome() http.HandlerFunc {
-	//TODO Здесь ошибка, пидор из интернетов хуйню написал
 	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Hello, Go!")
+		t, _ := template.ParseFiles("./internal/app/public/basictemplate.html")
+		p := PageOptions{Title: "Bitcoin Curensi"}
+		t.Execute(w, p)
 	}
 }
