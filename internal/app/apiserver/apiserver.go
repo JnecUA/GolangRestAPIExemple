@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -44,10 +43,8 @@ func (s *APIserver) Start() error {
 	s.logger.Info("API server start work")
 
 	//Connect sytatic files
-	staticPath, _ := filepath.Abs("../public")
-	fs := http.FileServer(http.Dir(staticPath))
-	http.Handle("/", fs)
-
+	fs := http.FileServer(http.Dir("./internal/app/public"))
+	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	//Start router
 	addr := s.config.Ip + ":" + strconv.Itoa(s.config.Port)
 	s.logger.Info("Router start on http://", addr)
@@ -75,7 +72,7 @@ func (s *APIserver) configureRouter() {
 func (s *APIserver) handleHome() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("./internal/app/public/basictemplate.html")
-		p := PageOptions{Title: "Bitcoin Curensi"}
+		p := PageOptions{Title: "Your team tasks"}
 		t.Execute(w, p)
 	}
 }
