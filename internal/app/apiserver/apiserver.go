@@ -1,10 +1,11 @@
 package apiserver
 
 import (
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
-	"text/template"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -41,6 +42,11 @@ func (s *APIserver) Start() error {
 	//Configureing router
 	s.configureRouter()
 	s.logger.Info("API server start work")
+
+	//Connect sytatic files
+	staticPath, _ := filepath.Abs("../public")
+	fs := http.FileServer(http.Dir(staticPath))
+	http.Handle("/", fs)
 
 	//Start router
 	addr := s.config.Ip + ":" + strconv.Itoa(s.config.Port)

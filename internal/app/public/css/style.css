@@ -1,0 +1,15 @@
+html {
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+body {
+    margin: 0;
+}
+
+.haeder {
+    height: 3.125em;
+    width: 100%;
+    background-color: #e07a5f;
+    color: #3d405b;
+}
