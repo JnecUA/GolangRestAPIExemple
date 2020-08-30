@@ -17,6 +17,7 @@ type APIserver struct {
 	router *mux.Router
 }
 
+//PageOptions ... define dinamic rendering variables
 type PageOptions struct {
 	Title string
 }
@@ -46,7 +47,7 @@ func (s *APIserver) Start() error {
 	fs := http.FileServer(http.Dir("./internal/app/public"))
 	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	//Start router
-	addr := s.config.Ip + ":" + strconv.Itoa(s.config.Port)
+	addr := s.config.IP + ":" + strconv.Itoa(s.config.Port)
 	s.logger.Info("Router start on http://", addr)
 	if err := http.ListenAndServe(addr, s.router); err != nil {
 		log.Panic(err)

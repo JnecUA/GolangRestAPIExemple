@@ -1,15 +1,36 @@
 html {
     box-sizing: border-box;
     font-size: 16px;
+    font-family: "Fira Code";
 }
 
 body {
     margin: 0;
 }
 
+.nav-bar--list {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.nav-bar--list li {
+    list-style: none;
+    font-weight: 500;
+}
+
+.nav-bar--list li a, .logo a {
+    color: #3d405b;
+}
+
+.logo {
+    font-weight: 700;
+}
+
+
+
 .header {
     height: 3.125em;
     width: 100%;
     background-color: #e07a5f;
-    color: #3d405b;
+    margin: 0 !important;
 }
