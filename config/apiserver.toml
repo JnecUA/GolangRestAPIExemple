@@ -1,3 +1,6 @@
+[ServerConfig]
 ip_addr = "localhost"
-port = 8000
+port = "8000"
 log_level = "debug"
+[DBConfig]
+dbURL = "postgresql://RESTAPI:5117z345Z/MainDB"

@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/JnecUA/GolangRestAPIExemple/internal/app/apiserver"
+	"github.com/JnecUA/GolangRestAPIExemple/internal/app/store"
 )
 
 var (
@@ -19,12 +20,19 @@ func init() {
 
 func main() {
 	flag.Parse()
-	config := apiserver.DefaultConfig()
-	_, err := toml.DecodeFile(configPath, config)
+	var GConfig struct {
+		ServerConfig map[string]string
+		DBConfig     map[string]string
+	}
+	_, err := toml.DecodeFile(configPath, &GConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	App := apiserver.Init(config)
+	s := apiserver.DefaultConfig()
+	s.MapConfiguring(GConfig.ServerConfig)
+	db := store.DefaultConfig()
+	db.MapConfiguring(GConfig.DBConfig)
+	App := apiserver.Init(s, db)
 	if err := App.Start(); err != nil {
 		log.Fatal(err)
 	}

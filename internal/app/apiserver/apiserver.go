@@ -4,8 +4,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
 
+	"github.com/JnecUA/GolangRestAPIExemple/internal/app/store"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -15,6 +15,7 @@ type APIserver struct {
 	config *Config
 	logger *logrus.Logger
 	router *mux.Router
+	db     *store.Store
 }
 
 //PageOptions ... define dinamic rendering variables
@@ -23,11 +24,12 @@ type PageOptions struct {
 }
 
 //Init ... Initialize default server
-func Init(config *Config) *APIserver {
+func Init(config *Config, dbConfig *store.Config) *APIserver {
 	return &APIserver{
 		config: config,
 		logger: logrus.New(),
 		router: mux.NewRouter(),
+		db:     store.Init(dbConfig),
 	}
 }
 
@@ -47,12 +49,11 @@ func (s *APIserver) Start() error {
 	fs := http.FileServer(http.Dir("./internal/app/public"))
 	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	//Start router
-	addr := s.config.IP + ":" + strconv.Itoa(s.config.Port)
+	addr := s.config.IP + ":" + s.config.Port
 	s.logger.Info("Router start on http://", addr)
 	if err := http.ListenAndServe(addr, s.router); err != nil {
 		log.Panic(err)
 	}
-
 	return nil
 }
 
