@@ -28,9 +28,9 @@ func main() {
 	}
 
 	r := gin.Default()
-
-	r.POST("/auth", auth.AuthPost(config.DBUrl))
-	r.PUT("/auth", auth.UserPut(config.DBUrl))
+	r.POST("api/v2/auth", auth.AuthPost(config.DBUrl))
+	r.PUT("api/v2/auth", auth.UserPut(config.DBUrl, config.SMTP))
+	r.GET("api/v2/confirm-account", auth.ConfirmGet(config.DBUrl))
 
 	r.Run()
 }

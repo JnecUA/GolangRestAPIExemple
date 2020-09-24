@@ -1,1 +1,7 @@
 dbUrl = "postgresql://restapi:restapi@localhost:5432/teams"
+[smtp]
+host = "smtp.gmail.com"
+port = "587"
+user = ""
+pass = ""
+sender = "YourEmailAddress@gmail.com"
