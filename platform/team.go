@@ -1,7 +1,8 @@
 package platform
 
+//Team type to work with db table
 type Team struct {
-	usersIds  []string `json:"usersIds"`
-	name      string   `json:"name"`
-	creatorId string   `json:"creatorId"`
+	UsersIds  []string `json:"usersIds"`
+	Name      string   `json:"name"`
+	CreatorID string   `json:"creatorId"`
 }

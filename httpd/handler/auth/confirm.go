@@ -13,7 +13,7 @@ import (
 func ConfirmGet(url string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		vals := c.Request.URL.Query()
-		if vals["hash"] == nil {
+		if vals["randhash"] == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"Error": "Hash is empty"})
 		} else {
 			dbpool, err := pgxpool.Connect(context.Background(), url)
@@ -25,10 +25,9 @@ func ConfirmGet(url string) gin.HandlerFunc {
 
 			//Take Query request to create new User
 			var greeting string
-			sql := fmt.Sprintf("update users set confirm = true  where randhash = '%v'", vals["hash"])
+			sql := fmt.Sprintf("update users set confirmed = true where randhash = '%v'", vals["randhash"][0])
 			_ = dbpool.QueryRow(context.Background(), sql).Scan(&greeting)
-
-			c.JSON(http.StatusOK, gin.H{"Error": "Successfuly"})
+			c.JSON(http.StatusOK, gin.H{"Status": "Successfuly"})
 		}
 	}
 }

@@ -4,12 +4,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"math/rand"
-	"time"
 )
-
-func HashInit() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // NewSHA1Hash generates a new SHA1 hash based on
 // a random number of characters.
