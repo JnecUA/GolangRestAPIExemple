@@ -35,7 +35,7 @@ type User struct {
 }
 
 //Register ... Registrate new user in DB
-func (u *User) Register(conn *pgx.Conn, smtp map[string]string) error {
+func (u *User) Register(conn *pgx.Conn, smtpConfig map[string]string) error {
 	//We prepare sql request
 	sql := fmt.Sprintf("select email from users where username='%s' or email='%s';", u.Email, u.Email)
 
@@ -59,7 +59,6 @@ func (u *User) Register(conn *pgx.Conn, smtp map[string]string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(hashedPassword)
 
 	//Generate random hash to check email
 	randHash := NewSHA1Hash()
@@ -72,7 +71,7 @@ func (u *User) Register(conn *pgx.Conn, smtp map[string]string) error {
 	}
 	//Send message to email
 
-	err = SendConfirmEmail(smtp, u.Email, randHash)
+	err = SendConfirmEmail(smtpConfig, u.Email, randHash)
 
 	return err
 }
@@ -92,16 +91,23 @@ func (u *User) IsAuthenticated(conn *pgx.Conn) error {
 	return nil
 }
 
-func (u *User) ForgotPassword(conn *pgx.Conn, smtp map[string]string) error {
-	//Uniquine check
-	sql := fmt.Sprintf("select email from users where email='%s';", u.Email)
-	err := conn.QueryRow(context.Background(), sql).Scan()
-	if err == pgx.ErrNoRows {
-		return fmt.Errorf("Email Not Exist")
-	}
+//ForgotPassword request to reset password
+func (u *User) ForgotPassword(conn *pgx.Conn, smtpConfig map[string]string) error {
 	//Generate random hash to check email
 	randHash := NewSHA1Hash()
-	err = SendResetEmail(smtp, u.Email, randHash)
+
+	sql := fmt.Sprintf("update users set randhash = '%v' where email='%s';", randHash, u.Email)
+	res, err := conn.Exec(context.Background(), sql)
+	if err != nil {
+		return fmt.Errorf("Error on sending query request")
+	}
+	if string(res) == "UPDATE 0" {
+		return fmt.Errorf("Email does not exist")
+	}
+	err = SendResetEmail(smtpConfig, u.Email, randHash)
+	if err != nil {
+		return nil
+	}
 	return nil
 }
 
@@ -113,6 +119,24 @@ func (u *User) GetAuthToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 	authToken, err := token.SignedString(tokenSecret)
 	return authToken, err
+}
+
+//ResetPassword set new password
+func (u *User) ResetPassword(conn *pgx.Conn) error {
+	//Generate new password
+	newPass, err := HashPassword(u.Password)
+	if err != nil {
+		return err
+	}
+	sql := fmt.Sprintf("update users set passwordhash = '%v' where randhash = '%v'", newPass, u.RandHash)
+	res, err := conn.Exec(context.Background(), sql)
+	if err != nil {
+		return fmt.Errorf("Error on sending query request")
+	}
+	if string(res) == "UPDATE 0" {
+		return fmt.Errorf("User with this hash not found")
+	}
+	return nil
 }
 
 //HashPassword ... Hashing password
@@ -130,7 +154,7 @@ func SendConfirmEmail(smtpConf map[string]string, receiver string, hash string) 
 	msg := strings.NewReader("To: " + receiver + "\r\n" +
 		"Subject: Confirm your email!\r\n" +
 		"\r\n" +
-		"Click on link to confirm your account <a href='localhost:8080/api/v2/confirm-account?randhash=" + hash + "'>Confirm</a>.\r\n")
+		"Click on link to confirm your account localhost:8080/users/confirm-account?randhash=" + hash)
 	err := smtp.SendMail(smtpConf["host"]+":"+smtpConf["port"], auth, smtpConf["sender"], to, msg)
 	if err != nil {
 		return err
@@ -147,7 +171,7 @@ func SendResetEmail(smtpConf map[string]string, receiver string, hash string) er
 	msg := strings.NewReader("To: " + receiver + "\r\n" +
 		"Subject: Password Reset\r\n" +
 		"\r\n" +
-		"Click on link to reset your password <a href='localhost:8080/api/v2/reset-password?randhash=" + hash + "'>Reset</a>.\r\n")
+		"Click on link to reset your password localhost:8080/users/reset-password?randhash=" + hash)
 	err := smtp.SendMail(smtpConf["host"]+":"+smtpConf["port"], auth, smtpConf["sender"], to, msg)
 	if err != nil {
 		return err

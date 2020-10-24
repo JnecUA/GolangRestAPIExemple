@@ -10,7 +10,7 @@ import (
 )
 
 //ConfirmAccount ... Confirm account in db
-func ConfirmAccount(url string) gin.HandlerFunc {
+func ConfirmAccount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		vals := c.Request.URL.Query()
 		if vals["randhash"] == nil {
@@ -18,14 +18,17 @@ func ConfirmAccount(url string) gin.HandlerFunc {
 		} else {
 			db, _ := c.Get("db")
 			conn := db.(pgx.Conn)
-
 			sql := fmt.Sprintf("update users set confirmed = true where randhash = '%v'", vals["randhash"][0])
-			err := conn.QueryRow(context.Background(), sql).Scan()
-			if err != pgx.ErrNoRows {
-				c.JSON(http.StatusOK, gin.H{"Status": "Successfuly"})
-			} else {
-				c.JSON(http.StatusOK, gin.H{"Status": "User with this hash not found"})
+			res, err := conn.Exec(context.Background(), sql)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{"Error": "Error on sending query request"})
 			}
+
+			if string(res) == "UPDATE 0" {
+				c.JSON(http.StatusOK, gin.H{"Status": "User with this hash not found"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"Status": "Successfuly"})
 		}
 	}
 }

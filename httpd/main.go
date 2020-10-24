@@ -45,15 +45,16 @@ func main() {
 	//Connect DB Middleware
 	r.Use(dbMiddleware(*conn))
 	//Connect SMTP Middleware
-	r.Use(smtpMiddleware(config.SMTP))
+	r.Use(CORSMiddleware())
 
 	//users group
 	usersGroup := r.Group("users")
 	{
 		usersGroup.POST("auth", auth.Auth())
-		usersGroup.PUT("register", auth.Register(config.DBUrl, config.SMTP))
-		//usersGroup.GET("confirm-account", auth.ConfirmAccount(config.DBUrl))
-		//usersGroup.POST("forgot-password", auth.ForgotPassword(config.DBUrl, config.SMTP))
+		usersGroup.PUT("register", auth.Register(config.SMTP))
+		usersGroup.GET("confirm-account", auth.ConfirmAccount())
+		usersGroup.POST("forgot-password", auth.ForgotPassword(config.SMTP))
+		usersGroup.POST("reset-password", auth.ResetPassword())
 	}
 
 	//Start
@@ -77,9 +78,18 @@ func dbMiddleware(conn pgx.Conn) gin.HandlerFunc {
 	}
 }
 
-func smtpMiddleware(smpt map[string]string) gin.HandlerFunc {
+func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("smtp", smtp)
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
 		c.Next()
 	}
 }

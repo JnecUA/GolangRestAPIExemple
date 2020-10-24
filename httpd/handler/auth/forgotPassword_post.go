@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/JnecUA/GolangRestAPIExemple/platform"
@@ -9,7 +10,7 @@ import (
 )
 
 //ForgotPassword ... request to reset password
-func ForgotPassword(url string, smtp map[string]string) gin.HandlerFunc {
+func ForgotPassword(smtpConfig map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Filling data
 		user := platform.User{}
@@ -22,11 +23,17 @@ func ForgotPassword(url string, smtp map[string]string) gin.HandlerFunc {
 		//Get db connect var
 		db, _ := c.Get("db")
 		conn := db.(pgx.Conn)
-		//Get smtp config var
-		smtp, _ := c.Get("smtp")
-		smtpConfig := smtp.(map[string]string)
 		//Take a forgot password request
-		user.ForgotPassword(&conn, smtpConfig)
+		err = user.ForgotPassword(&conn, smtpConfig)
+		if err != nil {
+			fmt.Println("Error in user.ForgotPassword()")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data": "Reset password mail sended",
+		})
 
 	}
 }
