@@ -1,54 +1,34 @@
 package auth
 
 import (
-	"context"
-	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/JnecUA/GolangRestAPIExemple/platform"
-
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v4"
 )
 
-//AuthRequest ... type to proccessing input json data
-type AuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-//AuthPost ... Auth function
-func AuthPost(url string) gin.HandlerFunc {
+//Auth ... Auth function
+func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req AuthRequest
-		c.BindJSON(&req)
+		//Fill the auth data
+		var user platform.User
+		c.BindJSON(&user)
 
-		dbpool, err := pgxpool.Connect(context.Background(), url)
+		db, _ := c.Get("db")
+		conn := db.(pgx.Conn)
+
+		err := user.IsAuthenticated(&conn)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-			os.Exit(1)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
-		defer dbpool.Close()
-
-		user := platform.DefaultUser()
-
-		sql := fmt.Sprintf("select email, username, fullname, passwordhash, teams_ids, groups_ids from users where username='%s' or email='%s';", req.Username, req.Username)
-		err = dbpool.QueryRow(context.Background(), sql).Scan(&user.Email, &user.Username, &user.Name, &user.Password, &user.TeamsIds, &user.GroupIds)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		}
-
-		if user != platform.DefaultUser() {
-			match := platform.CheckPasswordHash(req.Password, user.Password)
-			if match == true {
-				c.JSON(http.StatusOK, gin.H{"user": user})
-			} else {
-				c.JSON(http.StatusOK, gin.H{"user": "Email or password wrong"})
-			}
-
-		} else {
-			c.JSON(http.StatusOK, gin.H{"user": "Email or password wrong"})
+		token, err := user.GetAuthToken()
+		if err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"token": token,
+			})
+			return
 		}
 	}
 }
