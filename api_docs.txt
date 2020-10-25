@@ -1,0 +1,128 @@
+Login / Register
+
+1.Register(PUT) request exemple:
+URL: *Your domain*/users/register
+
+{
+    "email": "User email",
+	"username": "User username",
+    "name": "User full name",
+    "password": "Password",
+    "password_confirm": "Password confirm"
+}
+
+Returns on successful request (Status code: 200):
+{
+    "data": "Account created",
+}
+
+If email or username is already exist (Status code: 400):
+{
+    "error": "A user with than email or username already exist"
+}
+If one field fail validation (Status code: 400):
+{
+    "error": "Key: 'User.Email' Error:Field validation for 'Email' failed on the 'required' tag"
+}
+If multiple fields fail validation (Status code: 400):
+{
+    "error": [
+        "Key: 'User.Email' Error:Field validation for 'Email' failed on the 'required' tag",
+        "Key: 'User.Name' Error:Field validation for 'Name' failed on the 'required' tag",
+        "Key: 'User.Username' Error:Field validation for 'Username' failed on the 'required' tag",
+        "Key: 'User.Password' Error:Field validation for 'Password' failed on the 'required' tag",
+        "Key: 'User.PasswordConfirm' Error:Field validation for 'PasswordConfirm' failed on the 'required' tag"
+    ]
+}
+
+2.Login(POST) request exemple:
+URL: *Your domain*/users/login
+
+{
+    "email": "User email or username",
+    "password": "password"
+}
+
+Returns on successful request (Status code: 200):
+{
+    "token": "*Generated JWT Token*"
+}
+If User with email or username not found (Status code: 400):
+{
+    "error": "User with email or username not found"
+}
+If Passwords do not match (Status code: 400):
+{
+    "error": "Password wrong"
+}
+
+3.Email Confirm(GET)
+URL: *Your domain*/users/email-confirm?randhash=*Hash generated during registration*
+URL Sent to the email specified during registration
+
+Returns on successful request (Status code: 200):
+{
+    "data": "Confirmed"
+}
+If value randhash is empty (Status code: 400):
+{
+    "error": "Hash is empty"
+}
+If it was not possible to create a query in the database (Status code: 400):
+{
+    "error": "Error on sending query request"
+}
+If the user with the specified hash does not exist (Status code: 400):
+{
+    "error": "User with this hash not found"
+}
+4.Forgot Password(POST) request exemple:
+URL: *Your domain*/users/forgot-password
+{
+    "email": "woodoomax321@mail.ru"
+}
+
+Returns on successful request (Status code: 200):
+{
+	"data": "Reset password mail sended"
+}
+If it was not possible to create a query in the database (Status code: 400):
+{
+    "error": "Error on sending query request"
+}
+If email does not exist (Status code: 400):
+{
+    "error": "Email does not exist"
+}
+5.Reset Password(POST) request exemple:
+URL: *Your domain*/users/reset-password
+
+{
+    "password": "Password",
+    "randhash": "The hash in the link sent to the user's email"
+}
+
+Returns on successful request (Status code: 200):
+{
+	"data": "Password successfully reset",
+}
+
+If password does not match password_confirm:
+{
+    "error": "Fields password and password_confirm does not match"
+}
+If it was not possible to create a query in the database (Status code: 400):
+{
+    "error": "Error on sending query request"
+}
+If email does not exist (Status code: 400):
+{
+    "error": "User with this hash does not exist"
+}
+
+
+Password reset sequence:
+1) We send a request from *Your domain*/users/forgot-password for the user's email
+2) Follow the link from the letter
+3) Enter a new password and password_сonfirm
+4) Send POST request to *Your domain*/users/reset-password

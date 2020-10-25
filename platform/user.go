@@ -123,6 +123,9 @@ func (u *User) GetAuthToken() (string, error) {
 
 //ResetPassword set new password
 func (u *User) ResetPassword(conn *pgx.Conn) error {
+	if u.Password != u.PasswordConfirm {
+		return fmt.Errorf("Fields password and password_confirm does not match")
+	}
 	//Generate new password
 	newPass, err := HashPassword(u.Password)
 	if err != nil {
@@ -171,7 +174,7 @@ func SendResetEmail(smtpConf map[string]string, receiver string, hash string) er
 	msg := strings.NewReader("To: " + receiver + "\r\n" +
 		"Subject: Password Reset\r\n" +
 		"\r\n" +
-		"Click on link to reset your password localhost:8080/users/reset-password?randhash=" + hash)
+		"Click on link to reset your password *Your client domain*/users/reset-password?randhash=" + hash)
 	err := smtp.SendMail(smtpConf["host"]+":"+smtpConf["port"], auth, smtpConf["sender"], to, msg)
 	if err != nil {
 		return err

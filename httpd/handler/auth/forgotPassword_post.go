@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/JnecUA/GolangRestAPIExemple/platform"
@@ -17,7 +16,7 @@ func ForgotPassword(smtpConfig map[string]string) gin.HandlerFunc {
 		err := c.ShouldBindJSON(&user)
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		//Get db connect var
@@ -26,7 +25,6 @@ func ForgotPassword(smtpConfig map[string]string) gin.HandlerFunc {
 		//Take a forgot password request
 		err = user.ForgotPassword(&conn, smtpConfig)
 		if err != nil {
-			fmt.Println("Error in user.ForgotPassword()")
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}

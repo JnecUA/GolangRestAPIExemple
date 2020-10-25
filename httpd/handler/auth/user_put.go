@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/JnecUA/GolangRestAPIExemple/platform"
 	"github.com/gin-gonic/gin"
@@ -26,8 +26,11 @@ func Register(smtpConfig map[string]string) gin.HandlerFunc {
 
 		err = user.Register(&conn, smtpConfig)
 		if err != nil {
-			fmt.Println("Error in user.Register()")
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			if len(strings.Split(err.Error(), "\n")) > 1 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": strings.Split(err.Error(), "\n")})
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
 			return
 		}
 
